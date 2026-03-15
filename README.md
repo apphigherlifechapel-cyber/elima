@@ -1,36 +1,196 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Elima Store - Hybrid Retail + Wholesale Ecommerce
 
-## Getting Started
+Production-ready hybrid B2C + B2B commerce platform for retail and wholesale operations.
 
-First, run the development server:
+## Stack
+
+- Next.js App Router + TypeScript + Tailwind CSS
+- Prisma ORM + PostgreSQL
+- NextAuth (Auth.js credentials provider)
+- Paystack payment initialization + server-side verification + webhook verification
+- Optional SMTP receipt emails
+
+## Prerequisites
+
+- Node.js 20+
+- Docker (for local PostgreSQL)
+- npm
+
+## Environment Variables
+
+Use `.env` in the project root.
+
+Required:
+
+```dotenv
+DATABASE_URL="postgresql://elima:elima@127.0.0.1:5434/elima_store?schema=public"
+NEXTAUTH_SECRET="replace-with-random-long-secret"
+NEXTAUTH_URL="http://localhost:3000"
+PAYSTACK_SECRET_KEY=""
+PAYSTACK_CALLBACK_URL="http://localhost:3000/checkout/success"
+```
+
+Optional email receipt settings:
+
+```dotenv
+EMAIL_HOST="smtp.mailtrap.io"
+EMAIL_PORT="587"
+EMAIL_USER=""
+EMAIL_PASS=""
+EMAIL_FROM="no-reply@elima.com"
+```
+
+Webhook signature verification:
+
+```dotenv
+PAYSTACK_WEBHOOK_SECRET=""
+CRON_SECRET=""
+```
+
+Cloudinary (admin uploads):
+
+```dotenv
+CLOUDINARY_CLOUD_NAME=""
+CLOUDINARY_API_KEY=""
+CLOUDINARY_API_SECRET=""
+```
+
+Redis rate limiting (either option):
+
+```dotenv
+UPSTASH_REDIS_REST_URL=""
+UPSTASH_REDIS_REST_TOKEN=""
+# or
+REDIS_URL="redis://localhost:6379"
+```
+
+## Local Setup
+
+1. Start database:
+
+```bash
+docker start elima-postgres
+```
+
+If container does not exist yet:
+
+```bash
+docker run --name elima-postgres -e POSTGRES_USER=elima -e POSTGRES_PASSWORD=elima -e POSTGRES_DB=elima_store -p 5434:5432 -d postgres:16
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Sync schema and seed:
+
+```bash
+npm run prisma:push
+npm run seed
+```
+
+4. Run app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Seeded Admin Credentials
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Email: `admin@elima.com`
+- Password: `Admin123!`
 
-## Learn More
+## Staff Role Guidance
 
-To learn more about Next.js, take a look at the following resources:
+- `ADMIN` and `STAFF` can manage fulfillment/inventory operations.
+- `ADMIN` retains full platform management responsibilities.
+- To create staff users quickly, update a user record in DB role to `STAFF`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Useful Commands
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run test -- --run
+npm run lint
+npm run build
+npm run prisma:generate
+npm run cleanup:observability
+npm run readiness:check
+```
 
-## Deploy on Vercel
+## Scheduled Maintenance (Observability Retention)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+You can enforce observability retention in two ways:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Local/worker scheduled command:
+
+```bash
+npm run cleanup:observability
+# optional custom retention hours
+npm run cleanup:observability -- 72
+```
+
+2. Authenticated cron endpoint:
+
+`POST /api/admin/observability/cleanup`
+
+Use `Authorization: Bearer <CRON_SECRET>`.
+
+Optional JSON body:
+
+```json
+{ "retentionHours": 72 }
+```
+
+If `retentionHours` is omitted, the endpoint uses the configured observability retention setting.
+
+## Security and Deployment Checklist
+
+1. Rotate `NEXTAUTH_SECRET` to a strong random secret.
+2. Configure `PAYSTACK_SECRET_KEY` and `PAYSTACK_WEBHOOK_SECRET` in production.
+3. Configure Cloudinary credentials for admin media uploads.
+4. Configure Redis (`UPSTASH_*` or `REDIS_URL`) for distributed rate limiting.
+5. Use managed PostgreSQL and back up regularly.
+6. Run schema sync/migrations before deploy (`npm run prisma:push` or migration workflow).
+7. Validate webhook endpoint and callback URLs against production domain.
+8. Keep admin credentials unique per environment and never use seeded password in production.
+
+## Backup and Recovery Runbook (Practical)
+
+1. Schedule daily Postgres backups (managed DB snapshots or `pg_dump`).
+2. Keep at least 7 days of restore points.
+3. Test restore monthly to a staging environment.
+4. Version control Prisma schema and deployment change logs.
+
+## Implemented Core Modules
+
+- Retail catalog, product pages, cart, checkout, payment verify flow
+- Guest checkout path
+- Wholesale application flow + admin approval actions
+- Quote request flow + admin review/reprice/approve/reject/convert
+- Admin: dashboard, reports, orders, products CRUD, quotes, wholesale apps, customers, inventory, discounts, settings, banners
+- Account pages, address management, order tracking, wishlist management
+- Product reviews with verified purchase restriction
+
+## Deployment Notes (Vercel)
+
+- Set all environment variables in Vercel project settings.
+- Ensure `DATABASE_URL` points to production Postgres.
+- Configure Paystack callback and webhook URL to deployed domain.
+- Run schema push/migrations during deploy process.
+- See full free-tier deployment walkthrough in `DEPLOYMENT.md`.
+
+## Runtime Health & Readiness
+
+- Liveness endpoint: `GET /api/health`
+- Readiness endpoint: `GET /api/readiness` (returns `503` when not ready)
+- CLI gate check:
+
+```bash
+npm run readiness:check
+```
+
+Use the CLI check in CI/CD before deploy and readiness endpoint in platform health probes.

@@ -1,0 +1,10 @@
+{
+  "projectId": "d4fef36f-e1b8-4fba-9cfd-4eaa9eed7127",
+  "createdAt": 1773421855747,
+  "version": "1.0",
+  "startupCommands": [
+    "docker start elima-postgres; docker ps --filter \"name=elima-postgres\"",
+    "npm install; npm run prisma:push; npm run seed; npm run dev"
+  ],
+  "templateId": "any"
+}

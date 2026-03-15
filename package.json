@@ -6,21 +6,49 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:playwright": "playwright test",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "seed": "ts-node --transpile-only prisma/seed.ts",
+    "cleanup:observability": "ts-node --transpile-only scripts/cleanup-observability.ts",
+    "readiness:check": "node scripts/readiness-check.js"
   },
   "dependencies": {
+    "@upstash/redis": "^1.37.0",
+    "axios": "^1.13.6",
+    "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.9.0",
+    "ioredis": "^5.10.0",
     "next": "16.1.6",
+    "next-auth": "^4.24.13",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@prisma/client": "^4.16.1",
+    "@prisma/config": "^7.5.0",
+    "@sendgrid/mail": "^8.1.6",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^20",
+    "@types/nodemailer": "^7.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/ui": "^4.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "nodemailer": "^7.0.13",
+    "playwright": "^1.58.2",
+    "prisma": "^4.16.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "typescript": "^5",
+    "vitest": "^4.1.0"
   }
 }
