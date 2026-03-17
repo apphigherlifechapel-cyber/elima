@@ -7,6 +7,8 @@ import { FulfillmentStatus, OrderStatus } from "@prisma/client";
 import { updateOrderByStaffOrAdmin } from "@/lib/admin-ops";
 import { apiJson, createApiContext, logApiError, withUserContext } from "@/lib/utils/api-observability";
 
+export const dynamic = "force-dynamic";
+
 async function requireStaffOrAdmin() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return { error: "Unauthorized", status: 401 as const };

@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth/next-auth";
 import { prisma } from "@/lib/db/prisma";
 import { apiJson, createApiContext, logApiError, withUserContext } from "@/lib/utils/api-observability";
 
+export const dynamic = "force-dynamic";
+
 async function requireAdmin() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return { error: "Unauthorized", status: 401 as const };

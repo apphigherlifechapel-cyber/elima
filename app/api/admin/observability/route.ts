@@ -5,6 +5,8 @@ import { prisma } from "@/lib/db/prisma";
 import { apiJson, createApiContext, logApiError, withUserContext } from "@/lib/utils/api-observability";
 import { clearApiLogEvents, getApiLogSettings, listApiLogEvents, setApiLogRetentionHours } from "@/lib/utils/api-observability-store";
 import {
+
+export const dynamic = "force-dynamic";
   cleanupExpiredPersistedEvents,
   clearPersistedApiLogEvents,
   getPersistedRetentionHours,

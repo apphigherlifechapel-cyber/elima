@@ -6,6 +6,8 @@ import { checkRateLimitAsync, getClientIp } from "@/lib/utils/rate-limit";
 import { isCloudinaryConfigured, uploadImageBuffer } from "@/lib/utils/cloudinary";
 import { apiJson, createApiContext, logApiError, withUserContext } from "@/lib/utils/api-observability";
 
+export const dynamic = "force-dynamic";
+
 async function requireAdmin() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return { error: "Unauthorized", status: 401 as const };

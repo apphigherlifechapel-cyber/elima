@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { getPersistedRetentionHours, cleanupExpiredPersistedEvents } from "@/lib/utils/api-observability-db";
 import { apiJson, createApiContext, logApiError } from "@/lib/utils/api-observability";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   const ctx = createApiContext(req, "/api/admin/observability/cleanup");
   try {
