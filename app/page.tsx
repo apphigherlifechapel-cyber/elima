@@ -1,8 +1,10 @@
-﻿import Image from "next/image";
+import Image from "next/image";
 import Link from "next/link";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { formatCedis } from "@/lib/utils/currency";
+
+export const dynamic = "force-dynamic";
 import { getRecommendationsForUser } from "@/lib/recommendations";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/next-auth";

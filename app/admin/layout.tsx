@@ -1,8 +1,11 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/next-auth";
 import { prisma } from "@/lib/db/prisma";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+
+export const dynamic = "force-dynamic";
 
 const navItems = [
   {
