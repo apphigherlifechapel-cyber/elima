@@ -13,6 +13,7 @@ datasource db {
 enum UserRole {
   CUSTOMER
   STAFF
+  VENDOR
   ADMIN
 }
 
@@ -97,6 +98,8 @@ model User {
   auditLogs          AdminAuditLog[] @relation("ChangesByUser")
   analyticsEvents    AnalyticsEvent[]
   creditProfile      CreditProfile?
+  vendor             Vendor?
+  vendorApplications VendorApplication[]
   returnRequests     ReturnRequest[]
   authenticators     Authenticator[]
 }
@@ -178,6 +181,8 @@ model Product {
   seoTitle          String?
   seoDescription    String?
   metaKeywords      String?
+  vendor            Vendor?        @relation(fields: [vendorId], references: [id])
+  vendorId          String?
   embedding         Unsupported("vector(768)")? // Using 768 for Gemini embeddings
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
@@ -296,6 +301,8 @@ model OrderItem {
   quantity    Int
   unitPrice   Float
   totalPrice  Float
+  vendorId    String?
+  fulfillmentStatus FulfillmentStatus @default(PENDING)
 }
 
 model Payment {
@@ -485,4 +492,50 @@ model ReturnRequest {
   @@index([userId, createdAt])
   @@index([orderId, createdAt])
   @@index([status, createdAt])
+}
+
+model Vendor {
+  id                String   @id @default(cuid())
+  user              User     @relation(fields: [userId], references: [id])
+  userId            String   @unique
+  storeName         String   @unique
+  slug              String   @unique
+  logoUrl           String?
+  bio               String?
+  website           String?
+  commissionRate    Float    @default(0.15) // Default 15%
+  isVerified        Boolean  @default(false)
+  
+  products          Product[]
+  payouts           VendorPayout[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model VendorApplication {
+  id                String   @id @default(cuid())
+  user              User     @relation(fields: [userId], references: [id])
+  userId            String
+  companyName       String
+  taxId             String?
+  storeDescription  String
+  status            WholesaleStatus @default(PENDING) // Reusing enum
+  reviewedAt        DateTime?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model VendorPayout {
+  id                String   @id @default(cuid())
+  vendor            Vendor   @relation(fields: [vendorId], references: [id])
+  vendorId          String
+  amount            Float
+  status            PaymentStatus @default(PENDING)
+  reference         String?
+  processedAt       DateTime?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
