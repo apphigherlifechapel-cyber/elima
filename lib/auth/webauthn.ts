@@ -5,7 +5,6 @@ import {
   verifyAuthenticationResponse,
 } from "@simplewebauthn/server";
 import { prisma } from "@/lib/db/prisma";
-import type { Authenticator } from "@prisma/client";
 
 const rpName = "Elima Store";
 const rpID = process.env.NEXTAUTH_URL ? new URL(process.env.NEXTAUTH_URL).hostname : "localhost";
@@ -19,11 +18,11 @@ export async function getRegistrationOptions(userId: string, userEmail: string) 
   return generateRegistrationOptions({
     rpName,
     rpID,
-    userID: userId,
+    userID: Buffer.from(userId),
     userName: userEmail,
     attestationType: "none",
-    excludeCredentials: userAuthenticators.map((auth) => ({
-      id: auth.credentialID, // already base64 string in DB or should be converted
+    excludeCredentials: userAuthenticators.map((auth: any) => ({
+      id: Buffer.from(auth.credentialID, "base64url"),
       type: "public-key",
       transports: auth.transports ? (JSON.parse(auth.transports) as any) : undefined,
     })),
@@ -69,8 +68,8 @@ export async function getAuthenticationOptions(userId: string) {
 
   return generateAuthenticationOptions({
     rpID,
-    allowCredentials: userAuthenticators.map((auth) => ({
-      id: auth.credentialID,
+    allowCredentials: userAuthenticators.map((auth: any) => ({
+      id: Buffer.from(auth.credentialID, "base64url"),
       type: "public-key",
       transports: auth.transports ? (JSON.parse(auth.transports) as any) : undefined,
     })),
@@ -100,8 +99,8 @@ export async function verifyAuthentication(userId: string, body: any, expectedCh
       credentialPublicKey: authenticator.credentialPublicKey,
       counter: Number(authenticator.counter),
       transports: authenticator.transports ? (JSON.parse(authenticator.transports) as any) : undefined,
-    },
-  });
+    } as any,
+  } as any);
 
   if (verification.verified) {
     await prisma.authenticator.update({
