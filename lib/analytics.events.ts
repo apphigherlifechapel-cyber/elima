@@ -1,4 +1,4 @@
-﻿import { headers } from "next/headers";
+import { headers } from "next/headers";
 import { prisma } from "@/lib/db/prisma";
 import type { Prisma } from "@prisma/client";
 
@@ -20,16 +20,20 @@ export async function trackEvent(input: TrackEventInput) {
     // In tests or non-request contexts, headers() is unavailable. Persist event without request metadata.
   }
 
-  await prisma.analyticsEvent.create({
-    data: {
-      name: input.name,
-      userId: input.userId || null,
-      sessionId: input.sessionId || null,
-      metadata: input.metadata || {},
-      path,
-      ip,
-    },
-  });
+  try {
+    await prisma.analyticsEvent.create({
+      data: {
+        name: input.name,
+        userId: input.userId || null,
+        sessionId: input.sessionId || null,
+        metadata: input.metadata || {},
+        path,
+        ip,
+      },
+    });
+  } catch (error) {
+    console.error("Analytics tracking failed:", error);
+  }
 }
 
 export async function getTrackedEvents(limit = 200) {
