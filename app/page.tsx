@@ -64,191 +64,221 @@ export default async function HomePage() {
   ]);
 
   return (
-    <div className="pb-20">
-      <section className="relative overflow-hidden pt-8 sm:pt-10">
-        <div className="page-wrap">
-          <div className="relative overflow-hidden rounded-[2rem] border border-[var(--border-soft)]">
-            <Image src={editorial.hero} alt="Elima flagship fashion collection" fill className="object-cover" priority unoptimized />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/84 via-black/58 to-black/24" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_22%,rgba(245,158,11,0.26),transparent_36%)]" />
+    <div className="pb-32 overflow-hidden">
+      {/* Hero Section */}
+      <section className="relative pt-6 sm:pt-10">
+        <div className="page-container">
+          <div className="relative overflow-hidden rounded-[2.5rem] border border-zinc-200/50 shadow-2xl">
+            <div className="absolute inset-0">
+              <Image src={editorial.hero} alt="Elima flagship fashion collection" fill className="object-cover scale-105" priority unoptimized />
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/95 via-emerald-950/60 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/40 to-transparent" />
+            </div>
 
-            <div className="relative z-10 grid min-h-[560px] items-end gap-8 p-6 sm:p-10 lg:grid-cols-[1.25fr_0.75fr] lg:p-12">
-              <div>
-                <p className="inline-flex rounded-full border border-white/30 bg-white/15 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-white backdrop-blur">
-                  Elima Global Commerce
-                </p>
-                <h1 className="mt-5 max-w-4xl text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
-                  Premium Commerce Experience for Retail and Wholesale Growth.
+            <div className="relative z-10 grid min-h-[500px] items-center gap-12 p-8 sm:min-h-[600px] sm:p-16 lg:grid-cols-[1.3fr_0.7fr]">
+              <div className="slide-up">
+                <div className="mb-6 flex items-center gap-2">
+                  <span className="h-[1px] w-8 bg-emerald-400" />
+                  <p className="text-[11px] font-black uppercase tracking-[0.3em] text-emerald-400">
+                    Elima Global Commerce
+                  </p>
+                </div>
+                <h1 className="text-4xl font-black leading-[1.1] tracking-tight text-white sm:text-6xl lg:text-7xl">
+                  Redefining <br className="hidden sm:block" />
+                  <span className="text-emerald-400">African Premium</span> <br className="hidden sm:block" />
+                  Retail Standards.
                 </h1>
-                <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/90 sm:text-base">
-                  Discover curated fashion, accessories, and beauty essentials with enterprise-level buying workflows and a world-class storefront experience.
+                <p className="mt-8 max-w-xl text-lg leading-relaxed text-zinc-100/90 sm:text-xl">
+                  Discover curated fashion, accessories, and beauty essentials with enterprise-level buying workflows and a world-class storefront.
                 </p>
-                <div className="mt-7 flex flex-wrap gap-3">
-                  <Link href="/shop" className="rounded-2xl bg-white px-6 py-3 text-sm font-black text-zinc-900 transition hover:bg-white/90">
-                    Explore Shop
+                <div className="mt-10 flex flex-wrap gap-4">
+                  <Link href="/shop" className="btn-primary px-8 py-4 text-[13px] font-black uppercase tracking-widest">
+                    Shop Collection
                   </Link>
-                  <Link href="/wholesale" className="rounded-2xl border border-white/40 bg-white/10 px-6 py-3 text-sm font-black text-white backdrop-blur transition hover:bg-white/20">
-                    Wholesale Portal
+                  <Link href="/wholesale" className="btn-secondary bg-white/10 text-white border-white/20 backdrop-blur px-8 py-4 text-[13px] font-black uppercase tracking-widest hover:bg-white/20">
+                    Wholesale
                   </Link>
                 </div>
               </div>
 
-              <div className="glass rounded-3xl p-5 sm:p-6">
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--foreground)]">Catalog Snapshot</p>
-                <div className="mt-4 grid grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-2)] p-3">
-                    <p className="text-xl font-black text-[var(--foreground)]">{featuredProducts.length}+</p>
-                    <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-zinc-700">Featured SKUs</p>
+              <div className="hidden lg:block slide-up" style={{ animationDelay: "0.2s" }}>
+                <div className="glass rounded-[2rem] p-8">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-900 mb-6">Catalog Snapshot</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      { val: `${featuredProducts.length}+`, label: "Featured" },
+                      { val: `${categories.length}+`, label: "Categories" },
+                      { val: retailCount, label: "Retail" },
+                      { val: wholesaleCount, label: "Wholesale" },
+                    ].map((stat, i) => (
+                      <div key={i} className="rounded-2xl bg-zinc-50/50 border border-zinc-100 p-4">
+                        <p className="text-2xl font-black text-emerald-950">{stat.val}</p>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">{stat.label}</p>
+                      </div>
+                    ))}
                   </div>
-                  <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-2)] p-3">
-                    <p className="text-xl font-black text-[var(--foreground)]">{categories.length}+</p>
-                    <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-zinc-700">Active Categories</p>
-                  </div>
-                  <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-2)] p-3">
-                    <p className="text-xl font-black text-[var(--foreground)]">{retailCount}</p>
-                    <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-zinc-700">Retail Products</p>
-                  </div>
-                  <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-2)] p-3">
-                    <p className="text-xl font-black text-[var(--foreground)]">{wholesaleCount}</p>
-                    <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-zinc-700">Wholesale SKUs</p>
-                  </div>
+                  <Link href="/apply-wholesale" className="btn-secondary mt-6 w-full py-3 text-[11px] font-black uppercase">
+                    Apply for Wholesale Access
+                  </Link>
                 </div>
-                <Link href="/apply-wholesale" className="btn-secondary mt-4 w-full rounded-xl py-2 text-center text-xs font-black">
-                  Apply for Wholesale Access
-                </Link>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="page-wrap mt-12">
-        <div className="grid gap-4 md:grid-cols-3">
-          {valuePillars.map((pillar) => (
-            <article key={pillar.title} className="soft-card rounded-3xl p-5 sm:p-6">
-              <h2 className="text-lg font-black tracking-tight text-[var(--foreground)]">{pillar.title}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-700">{pillar.desc}</p>
-            </article>
-          ))}
+      {/* Value Pillars - Optimized for mobile scrolling */}
+      <section className="mt-16">
+        <div className="page-container h-full">
+           <div className="relative -mx-5 px-5 overflow-x-auto no-scrollbar sm:mx-0 sm:px-0 sm:overflow-visible">
+            <div className="flex gap-4 sm:grid sm:grid-cols-3">
+              {valuePillars.map((pillar) => (
+                <article key={pillar.title} className="premium-card min-w-[300px] rounded-[2rem] p-8 sm:min-w-0">
+                  <h2 className="text-xl font-black tracking-tight text-emerald-950">{pillar.title}</h2>
+                  <p className="mt-4 text-[15px] leading-relaxed text-zinc-600">{pillar.desc}</p>
+                </article>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
+      {/* Recommendations */}
       {recs.personalized.length > 0 ? (
-        <section className="page-wrap mt-12">
-          <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--primary-strong)]">For You</p>
-              <h2 className="mt-2 text-3xl font-black tracking-tight text-[var(--foreground)] sm:text-4xl">Personalized Picks</h2>
-              <p className="mt-1 text-xs font-black uppercase tracking-[0.12em] text-[var(--muted-foreground)]">Segment: {recs.segment.replace("_", " ")}</p>
+        <section className="mt-24">
+          <div className="page-container">
+            <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-2">For You</p>
+                <h2 className="text-4xl font-black tracking-tight text-emerald-950 sm:text-5xl">Personalized Picks</h2>
+              </div>
+              <Link href="/shop" className="text-[11px] font-black uppercase tracking-widest text-zinc-400 hover:text-emerald-700 transition-colors">
+                View All Recommendations →
+              </Link>
             </div>
-            <Link href="/shop" className="btn-secondary rounded-full px-4 py-2 text-xs font-black">
-              Continue Shopping
-            </Link>
+            <RecommendationGrid items={recs.personalized} context="home" />
           </div>
-          <RecommendationGrid items={recs.personalized} context="home" />
         </section>
       ) : null}
 
-      <section className="page-wrap mt-12">
-        <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="relative overflow-hidden rounded-3xl border border-[var(--border-soft)]">
-            <Image src={editorial.split} alt="Luxury retail editorial grid" fill className="object-cover" unoptimized />
-            <div className="absolute inset-0 bg-gradient-to-tr from-black/80 via-black/35 to-black/15" />
-            <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-white/80">Retail Excellence</p>
-              <h3 className="mt-2 max-w-xl text-2xl font-black tracking-tight text-white sm:text-3xl">
-                Merchandising quality designed to compete in global ecommerce markets.
-              </h3>
-            </div>
-          </div>
-
-          <div className="relative overflow-hidden rounded-3xl border border-[var(--border-soft)]">
-            <Image src={editorial.wholesale} alt="Wholesale-ready warehouse operations" fill className="object-cover" unoptimized />
-            <div className="absolute inset-0 bg-gradient-to-tr from-black/78 via-black/35 to-black/12" />
-            <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-white/80">B2B Growth</p>
-              <h3 className="mt-2 max-w-xl text-2xl font-black tracking-tight text-white sm:text-3xl">
-                Wholesale account flows built for speed, clarity, and scale.
-              </h3>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="page-wrap mt-12">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--primary-strong)]">Featured Products</p>
-            <h2 className="mt-2 text-3xl font-black tracking-tight text-[var(--foreground)] sm:text-4xl">Top Picks Right Now</h2>
-          </div>
-          <Link href="/shop" className="btn-secondary rounded-full px-4 py-2 text-xs font-black">
-            View Full Catalog
-          </Link>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {featuredProducts.map((product: FeaturedProduct) => (
-            <article key={product.id} className="soft-card rounded-2xl p-3 sm:p-4">
-              <Link href={`/product/${product.slug}`} className="group block">
-                <div className="relative mb-3 h-52 overflow-hidden rounded-xl bg-[var(--surface-2)]">
-                  {product.images?.[0]?.url ? (
-                    <Image
-                      src={product.images[0].url}
-                      alt={product.images[0].altText ?? product.title}
-                      fill
-                      className="object-cover transition duration-300 group-hover:scale-105"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-sm text-[var(--muted-foreground)]">No image</div>
-                  )}
-
-                  <div className="absolute left-2 top-2 flex gap-1.5">
-                    {product.isWholesale ? (
-                      <span className="rounded-full border border-[var(--border-soft)] bg-[var(--surface)] px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--primary-strong)]">
-                        Wholesale
-                      </span>
-                    ) : (
-                      <span className="rounded-full border border-[var(--border-soft)] bg-[var(--surface)] px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--foreground)]">
-                        Retail
-                      </span>
-                    )}
-                  </div>
+      {/* Split Editorial */}
+      <section className="mt-24">
+        <div className="page-container">
+          <div className="grid gap-6 lg:grid-cols-2">
+            {[
+              { img: editorial.split, label: "Retail Excellence", title: "Merchandising quality designed for global markets." },
+              { img: editorial.wholesale, label: "B2B Growth", title: "Wholesale account flows built for speed and scale." },
+            ].map((item, i) => (
+              <div key={i} className="group relative h-[450px] overflow-hidden rounded-[2.5rem] border border-zinc-200/50">
+                <Image src={item.img} alt={item.label} fill className="object-cover transition-transform duration-700 group-hover:scale-110" unoptimized />
+                <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/90 via-emerald-950/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-10">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-2">{item.label}</p>
+                  <h3 className="max-w-md text-3xl font-black tracking-tight text-white leading-tight">
+                    {item.title}
+                  </h3>
                 </div>
-
-                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
-                  {product.brand?.name ?? "Unbranded"} • {product.category?.name}
-                </p>
-                <h3 className="mt-1 line-clamp-2 text-base font-black text-[var(--foreground)]">{product.title}</h3>
-                <p className="mt-2 text-lg font-black text-[var(--foreground)]">{formatCedis(Number(product.retailPrice || 0))}</p>
-                {product.isWholesale ? (
-                  <p className="text-xs text-[var(--muted-foreground)]">Wholesale from {formatCedis(Number(product.wholesalePrice || 0))}</p>
-                ) : null}
-              </Link>
-            </article>
-          ))}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="page-wrap mt-12">
-        <div className="glass rounded-3xl p-6 sm:p-8 lg:p-10">
-          <div className="grid items-center gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+      {/* Featured Products */}
+      <section className="mt-24">
+        <div className="page-container text-emerald-950">
+          <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--primary-strong)]">Ready to Scale?</p>
-              <h2 className="mt-2 text-3xl font-black tracking-tight text-[var(--foreground)] sm:text-4xl">
-                Build Your Business With Elima Wholesale
-              </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-700 sm:text-base">
-                Access volume pricing, quote processing, and account workflows engineered for serious retail operators and bulk buyers.
-              </p>
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-2">New Arrivals</p>
+              <h2 className="text-4xl font-black tracking-tight sm:text-5xl">Top Picks Right Now</h2>
             </div>
-            <div className="flex flex-wrap gap-3 lg:justify-end">
-              <Link href="/apply-wholesale" className="btn-primary rounded-2xl px-6 py-3 text-sm font-black">
-                Apply for Wholesale
-              </Link>
-              <Link href="/request-quote" className="btn-secondary rounded-2xl px-6 py-3 text-sm font-black">
-                Request a Quote
-              </Link>
+            <Link href="/shop" className="text-[11px] font-black uppercase tracking-widest text-zinc-400 hover:text-emerald-700 transition-colors">
+              Explore Full Catalog →
+            </Link>
+          </div>
+
+          <div className="relative -mx-5 px-5 overflow-x-auto no-scrollbar sm:mx-0 sm:px-0 sm:overflow-visible">
+            <div className="flex gap-4 pb-6 sm:grid sm:grid-cols-2 xl:grid-cols-4 sm:pb-0">
+              {featuredProducts.map((product: FeaturedProduct) => (
+                <article key={product.id} className="premium-card min-w-[280px] rounded-[2rem] p-4 sm:min-w-0">
+                  <Link href={`/product/${product.slug}`} className="group block">
+                    <div className="relative mb-4 aspect-[4/5] overflow-hidden rounded-2xl bg-zinc-100">
+                      {product.images?.[0]?.url ? (
+                        <Image
+                          src={product.images[0].url}
+                          alt={product.images[0].altText ?? product.title}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-sm text-zinc-400">No image</div>
+                      )}
+
+                      <div className="absolute left-3 top-3 flex gap-2">
+                        {product.isWholesale && (
+                          <span className="rounded-full bg-emerald-950/90 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-white backdrop-blur">
+                            Wholesale
+                          </span>
+                        )}
+                        <span className="rounded-full bg-white/90 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-zinc-900 backdrop-blur shadow-sm">
+                          {product.category?.name}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-zinc-400">
+                        {product.brand?.name ?? "Premium Portfolio"}
+                      </p>
+                      <h3 className="line-clamp-2 text-xl font-black tracking-tight group-hover:text-emerald-700 transition-colors">
+                        {product.title}
+                      </h3>
+                      <div className="pt-2 flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <p className="text-2xl font-black text-emerald-900">{formatCedis(Number(product.retailPrice || 0))}</p>
+                          {product.isWholesale && (
+                            <p className="text-[10px] font-bold text-zinc-500 italic">Bulk rates available</p>
+                          )}
+                        </div>
+                        <div className="rounded-full bg-zinc-100 p-2.5 group-hover:bg-emerald-600 group-hover:text-white transition-all transform group-hover:rotate-90">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-5 w-5">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Wholesale CTA */}
+      <section className="mt-32">
+        <div className="page-container">
+          <div className="glass rounded-[3rem] p-10 sm:p-20 text-center lg:text-left">
+            <div className="grid items-center gap-12 lg:grid-cols-[1.2fr_0.8fr]">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-4">Ready to Scale?</p>
+                <h2 className="text-4xl font-black tracking-tight text-emerald-950 sm:text-6xl">
+                  Build Your Business With Elima Wholesale
+                </h2>
+                <p className="mt-6 max-w-2xl text-lg leading-relaxed text-zinc-600">
+                  Access volume pricing, quote processing, and account workflows engineered for serious retail operators and bulk buyers.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-4 lg:justify-end">
+                <Link href="/apply-wholesale" className="btn-primary px-10 py-5 text-[14px] font-black uppercase tracking-widest">
+                  Apply Now
+                </Link>
+                <Link href="/request-quote" className="btn-secondary px-10 py-5 text-[14px] font-black uppercase tracking-widest">
+                  Get a Quote
+                </Link>
+              </div>
             </div>
           </div>
         </div>
