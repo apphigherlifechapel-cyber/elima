@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/next-auth";
@@ -20,7 +20,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const product = await prisma.product.findUnique({
     where: { slug },
-    include: { images: true, variants: true, brand: true, category: true },
+    include: { images: true, variants: true, brand: true, category: true, vendor: true },
   });
   if (!product) return notFound();
 
@@ -77,6 +77,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <p className="mt-3 text-sm leading-relaxed text-zinc-700 sm:text-base">{product.description}</p>
 
               <div className="mt-5 flex flex-wrap items-center gap-2 text-[11px] font-black uppercase tracking-wide">
+                {product.vendor && (
+                  <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-emerald-700">
+                    Sold by {product.vendor.storeName}
+                  </span>
+                )}
                 {product.isWholesale ? (
                   <span className="rounded-full border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-1 text-[var(--primary-strong)]">
                     Wholesale Enabled

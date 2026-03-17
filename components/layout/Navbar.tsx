@@ -44,6 +44,7 @@ export function Navbar() {
             {[
               { href: "/shop", label: "Shop" },
               { href: "/wholesale", label: "Wholesale" },
+              { href: "/vendor/onboarding", label: "Sell" },
               { href: "/request-quote", label: "Quote" },
               { href: "/track-order", label: "Track" },
             ].map((item) => (
@@ -141,6 +142,7 @@ export function Navbar() {
               {[
                 { href: "/shop", label: "Shop Catalog" },
                 { href: "/wholesale", label: "Wholesale Portal" },
+                { href: "/vendor/onboarding", label: "Sell on Elima" },
                 { href: "/request-quote", label: "Request a Quote" },
                 { href: "/track-order", label: "Track Your Order" },
                 { href: "/about", label: "Our Story" },
