@@ -23,7 +23,7 @@ export default async function WholesaleCatalog() {
         </header>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {products.map((product) => (
+          {products.map((product: any) => (
             <div key={product.id} className="group overflow-hidden rounded-3xl border border-zinc-100 bg-white p-4 shadow-sm transition-all hover:shadow-xl">
               <div className="relative aspect-square overflow-hidden rounded-2xl bg-zinc-100">
                 {product.images[0] && (
