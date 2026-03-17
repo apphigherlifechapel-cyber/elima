@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db/prisma";
 import CancelOrderButton from "@/components/account/CancelOrderButton";
 import { formatCedis } from "@/lib/utils/currency";
 import { Order, OrderItem, Payment } from "@prisma/client";
+import { BiometricSettings } from "@/components/auth/BiometricSettings";
 
 type AccountOrder = Order & { payment: Payment | null; items: OrderItem[] };
 
@@ -59,7 +60,18 @@ export default async function AccountPage() {
           </div>
         </div>
 
-        <div className="soft-card fade-in-up stagger-1 mt-6 rounded-2xl p-4 sm:p-6">
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+           <BiometricSettings />
+           <div className="rounded-3xl border border-zinc-100 bg-white p-6 shadow-sm">
+             <h3 className="text-lg font-black text-zinc-900">Wholesale Profile</h3>
+             <p className="mt-1 text-sm font-bold text-zinc-500">Status: {user.wholesaleStatus}</p>
+             <Link href="/wholesale" className="btn-secondary mt-6 inline-flex rounded-full px-5 py-2.5 text-xs font-black uppercase tracking-widest">
+                Go to Portal
+             </Link>
+           </div>
+        </div>
+
+        <div className="soft-card fade-in-up stagger-1 mt-6 rounded-2xl p-4 sm:p-6 text-emerald-950">
           <h2 className="text-xl font-black text-[var(--foreground)]">Recent Orders</h2>
           {orders.length === 0 ? (
             <p className="mt-3 text-sm text-[var(--muted-foreground)]">You have no orders yet.</p>

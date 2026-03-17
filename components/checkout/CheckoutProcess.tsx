@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { formatCedis } from "@/lib/utils/currency";
+import { LogisticsService, ShippingRate } from "@/lib/logistics/service";
 
 type CheckoutProcessProps = {
   initialShippingMethod?: "standard" | "express";
@@ -35,6 +36,15 @@ export function CheckoutProcess({ initialShippingMethod = "standard", guestMode 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [availableRates, setAvailableRates] = useState<ShippingRate[]>([]);
+
+  useEffect(() => {
+    async function fetchRates() {
+       const rates = await LogisticsService.getRates({ country, city, postalCode }, 500); // Default weight
+       setAvailableRates(rates);
+    }
+    fetchRates();
+  }, [country, city, postalCode]);
 
   useEffect(() => {
     if (!guestMode || guestItems.length > 0) return;
@@ -51,6 +61,29 @@ export function CheckoutProcess({ initialShippingMethod = "standard", guestMode 
   }, [guestItemsState, guestMode]);
 
   const shippingCost = shippingMethod === "express" ? 1500 : 800;
+
+  const [hasBiometrics, setHasBiometrics] = useState(false);
+
+  useEffect(() => {
+    if (guestMode) return;
+    fetch("/api/auth/webauthn/authenticators/status")
+      .then(res => res.json())
+      .then(data => setHasBiometrics(!!data.hasAuthenticators))
+      .catch(() => {});
+  }, [guestMode]);
+
+  async function handleBiometricCheckout() {
+    setLoading(true);
+    setError(null);
+    try {
+      const { authenticateBiometrics } = await import("@/lib/auth/biometric.client");
+      await authenticateBiometrics();
+      await placeOrder(); // Proceed to order placement after biometric verification
+    } catch (err: any) {
+      setError(err.message || "Biometric authentication failed");
+      setLoading(false);
+    }
+  }
 
   async function placeOrder() {
     setLoading(true);
@@ -159,9 +192,12 @@ export function CheckoutProcess({ initialShippingMethod = "standard", guestMode 
 
         <div>
           <label className="block text-xs font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Shipping Method</label>
-          <select value={shippingMethod} onChange={(e) => setShippingMethod(e.target.value as "standard" | "express")} className="input-premium mt-1 w-full">
-            <option value="standard">Standard ({formatCedis(800)})</option>
-            <option value="express">Express ({formatCedis(1500)})</option>
+          <select value={shippingMethod} onChange={(e) => setShippingMethod(e.target.value as any)} className="input-premium mt-1 w-full">
+            {availableRates.map(rate => (
+              <option key={rate.service} value={rate.service.toLowerCase().replace(/\s+/g, "_")}>
+                {rate.carrier} {rate.service} ({formatCedis(rate.rate)}) — {rate.estimatedDays} days
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -182,6 +218,21 @@ export function CheckoutProcess({ initialShippingMethod = "standard", guestMode 
           </div>
         </div>
       ) : null}
+
+      {hasBiometrics && (
+        <button
+          type="button"
+          onClick={handleBiometricCheckout}
+          disabled={loading}
+          className="btn-primary mb-3 flex w-full items-center justify-center gap-2 rounded-full bg-emerald-950 px-4 py-3 text-sm font-black text-white shadow-xl hover:bg-emerald-900 disabled:opacity-50"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-5 w-5">
+            <path d="M12 22v-4M8 22v-4M16 22v-4M7 11v4c0 2.761 2.239 5 5 5s5-2.239 5-5v-4" />
+            <path d="M12 2a5 5 0 00-5 5v4h10V7a5 5 0 00-5-5z" />
+          </svg>
+          {loading ? "Verifying..." : "One-Tap Biometric Checkout"}
+        </button>
+      )}
 
       <button
         type="button"

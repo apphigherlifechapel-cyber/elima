@@ -1,154 +1,114 @@
-import Image from "next/image";
-import Link from "next/link";
-import { getServerSession } from "next-auth/next";
+import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/next-auth";
+import { redirect } from "next/navigation";
+import Link from "next/link";
 import { prisma } from "@/lib/db/prisma";
-
-const WHOLESALE_HERO = "https://images.unsplash.com/photo-1556742393-d75f468bfcb0?auto=format&fit=crop&w=2200&q=90";
-
-const wholesaleCapabilities = [
-  {
-    title: "Account Approval Workflow",
-    description: "Structured onboarding for verified wholesale buyers and business identities.",
-  },
-  {
-    title: "Quote-to-Order Conversion",
-    description: "Submit quote requests, review pricing, and convert approved quotes into orders quickly.",
-  },
-  {
-    title: "MOQ & Tiered Pricing Controls",
-    description: "Access wholesale rates with quantity thresholds and category-driven inventory planning.",
-  },
-];
-
-function statusTone(status: string) {
-  if (status === "APPROVED") return "text-emerald-700 bg-emerald-50 border-emerald-200";
-  if (status === "REJECTED") return "text-rose-700 bg-rose-50 border-rose-200";
-  return "text-amber-700 bg-amber-50 border-amber-200";
-}
 
 export default async function WholesalePage() {
   const session = await getServerSession(authOptions);
-
+  
   if (!session?.user?.email) {
-    return (
-      <div className="pb-16 pt-8 sm:pt-10">
-        <div className="page-wrap">
-          <section className="relative overflow-hidden rounded-[2rem] border border-[var(--border-soft)]">
-            <Image src={WHOLESALE_HERO} alt="Wholesale operations and growth" fill className="object-cover" priority unoptimized />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/84 via-black/58 to-black/24" />
-            <div className="relative z-10 min-h-[360px] p-6 sm:p-10">
-              <p className="inline-flex rounded-full border border-white/30 bg-white/15 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-white backdrop-blur">
-                Elima B2B
-              </p>
-              <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-tight text-white sm:text-5xl">
-                Wholesale Infrastructure for Serious Buyers
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/90 sm:text-base">
-                Sign in to access account approval status, quote workflows, and bulk order operations.
-              </p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Link className="rounded-2xl bg-white px-5 py-2.5 text-sm font-black text-zinc-900 hover:bg-white/90" href="/login">
-                  Sign in
-                </Link>
-                <Link className="rounded-2xl border border-white/40 bg-white/10 px-5 py-2.5 text-sm font-black text-white backdrop-blur hover:bg-white/20" href="/apply-wholesale">
-                  Apply for wholesale
-                </Link>
-              </div>
-            </div>
-          </section>
+    redirect("/login?callbackUrl=/wholesale");
+  }
 
-          <section className="mt-8 grid gap-4 md:grid-cols-3">
-            {wholesaleCapabilities.map((item) => (
-              <article key={item.title} className="soft-card rounded-3xl p-5 sm:p-6">
-                <h2 className="text-lg font-black tracking-tight text-[var(--foreground)]">{item.title}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-700">{item.description}</p>
-              </article>
-            ))}
-          </section>
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    include: { wholesaleApplication: true }
+  });
+
+  if (!user || user.accountType !== "WHOLESALE" || user.wholesaleStatus !== "APPROVED") {
+    return (
+      <div className="page-container py-24">
+        <div className="mx-auto max-w-2xl text-center">
+          <h1 className="text-4xl font-black tracking-tight text-zinc-900">Wholesale Access Restricted</h1>
+          <p className="mt-6 text-lg text-zinc-600">
+            This portal is exclusively for our approved B2B partners. If you are a retailer, please apply for a wholesale account.
+          </p>
+          <div className="mt-10 flex items-center justify-center gap-x-6">
+            <Link href="/account" className="btn-primary rounded-full px-8 py-3 text-sm font-bold">
+              Check Application Status
+            </Link>
+            <Link href="/" className="text-sm font-black uppercase tracking-widest text-zinc-900">
+              Back to Home
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } });
-  if (!user) return <div className="page-wrap py-12 text-sm text-red-600">User not found.</div>;
-
-  const application = await prisma.wholesaleApplication.findUnique({ where: { userId: user.id } });
-  const quoteCount = await prisma.quote.count({ where: { userId: user.id } });
-  const bulkOrderCount = await prisma.order.count({ where: { userId: user.id, type: { in: ["WHOLESALE", "QUOTE_CONVERTED"] } } });
-
   return (
-    <div className="pb-16 pt-8 sm:pt-10">
-      <div className="page-wrap">
-        <section className="glass rounded-3xl p-6 sm:p-8">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--primary-strong)]">Wholesale Control Center</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-[var(--foreground)] sm:text-4xl">Welcome Back, {user.name || "Partner"}</h1>
-          <p className="mt-1 text-sm text-[var(--muted-foreground)]">Account: {user.email}</p>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            <span className={`rounded-full border px-3 py-1 text-xs font-black uppercase tracking-wide ${statusTone(user.wholesaleStatus)}`}>
-              {user.wholesaleStatus}
-            </span>
-            <span className="rounded-full border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-1 text-xs font-black uppercase tracking-wide text-[var(--foreground)]">
-              {user.accountType}
-            </span>
+    <div className="min-h-screen bg-zinc-50/50">
+      <div className="page-container py-12">
+        <header className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-black tracking-tight text-zinc-900">Elima B2B Portal</h1>
+            <p className="mt-2 text-zinc-500 font-bold uppercase tracking-widest text-xs">Exclusively for {user.wholesaleApplication?.companyName}</p>
           </div>
-        </section>
+          <div className="flex gap-4">
+             <div className="rounded-2xl border border-zinc-200 bg-white px-5 py-3 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Available Credit</p>
+                <p className="text-lg font-black text-emerald-600">GH₵ 15,000.00</p>
+             </div>
+          </div>
+        </header>
 
-        <section className="mt-6 grid gap-4 sm:grid-cols-3">
-          <article className="soft-card rounded-2xl p-5">
-            <p className="text-xs font-black uppercase tracking-[0.12em] text-[var(--muted-foreground)]">Quote Requests</p>
-            <p className="mt-2 text-3xl font-black text-[var(--foreground)]">{quoteCount}</p>
-          </article>
-          <article className="soft-card rounded-2xl p-5">
-            <p className="text-xs font-black uppercase tracking-[0.12em] text-[var(--muted-foreground)]">Bulk Orders</p>
-            <p className="mt-2 text-3xl font-black text-[var(--foreground)]">{bulkOrderCount}</p>
-          </article>
-          <article className="soft-card rounded-2xl p-5">
-            <p className="text-xs font-black uppercase tracking-[0.12em] text-[var(--muted-foreground)]">Application</p>
-            <p className="mt-2 text-lg font-black text-[var(--foreground)]">{application ? "Submitted" : "Not Submitted"}</p>
-          </article>
-        </section>
-
-        <section className="mt-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <article className="soft-card rounded-2xl p-5 sm:p-6">
-            <h2 className="text-lg font-black text-[var(--foreground)]">Application & Status Details</h2>
-            <div className="mt-3 space-y-2 text-sm text-[var(--muted-foreground)]">
-              <p>
-                Account type: <span className="font-bold text-[var(--foreground)]">{user.accountType}</span>
-              </p>
-              <p>
-                Wholesale status: <span className="font-bold text-[var(--foreground)]">{user.wholesaleStatus}</span>
-              </p>
-            </div>
-
-            {application ? (
-              <div className="mt-4 rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-4 text-sm">
-                <p className="font-semibold text-[var(--foreground)]">Company: {application.companyName}</p>
-                <p className="mt-1 text-[var(--muted-foreground)]">Submitted: {new Date(application.submittedAt).toLocaleString()}</p>
-                {application.reviewedAt ? (
-                  <p className="text-[var(--muted-foreground)]">Reviewed: {new Date(application.reviewedAt).toLocaleString()}</p>
-                ) : null}
+        <div className="mt-12 grid gap-8 lg:grid-cols-3">
+          {/* Quick Actions */}
+          <div className="lg:col-span-2 grid gap-6 sm:grid-cols-2">
+            <Link href="/wholesale/catalog" className="group flex flex-col justify-between rounded-3xl border border-zinc-100 bg-white p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
+              <div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-900 text-white transition-transform group-hover:scale-110">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6">
+                    <path d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </div>
+                <h3 className="mt-6 text-xl font-black text-zinc-900">Bulk Catalog</h3>
+                <p className="mt-2 text-sm text-zinc-500 font-bold">Browse specialized B2B pricing and pack sizes.</p>
               </div>
-            ) : (
-              <p className="mt-4 text-sm text-[var(--muted-foreground)]">No wholesale application on file.</p>
-            )}
-          </article>
+              <div className="mt-8 flex items-center text-xs font-black uppercase tracking-widest text-zinc-900">
+                Shop Now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="ml-2 h-3 w-3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </div>
+            </Link>
 
-          <article className="soft-card rounded-2xl p-5 sm:p-6">
-            <h2 className="text-lg font-black text-[var(--foreground)]">Actions</h2>
-            <div className="mt-4 grid gap-2 text-sm">
-              <Link href="/apply-wholesale" className="btn-secondary rounded-xl px-4 py-2 text-xs font-black">Submit / Update Application</Link>
-              <Link href="/wholesale/quotes" className="btn-secondary rounded-xl px-4 py-2 text-xs font-black">View Quote Requests</Link>
-              <Link href="/wholesale/bulk-orders" className="btn-secondary rounded-xl px-4 py-2 text-xs font-black">View Bulk Orders</Link>
-              <Link href="/request-quote" className="btn-secondary rounded-xl px-4 py-2 text-xs font-black">Request a Quote</Link>
-              <Link href="/shop" className="btn-secondary rounded-xl px-4 py-2 text-xs font-black">Browse Products</Link>
+            <Link href="/wholesale/orders" className="group flex flex-col justify-between rounded-3xl border border-zinc-100 bg-white p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
+              <div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 transition-transform group-hover:scale-110">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <h3 className="mt-6 text-xl font-black text-zinc-900">B2B Order History</h3>
+                <p className="mt-2 text-sm text-zinc-500 font-bold">Track bulk shipments and download invoices.</p>
+              </div>
+              <div className="mt-8 flex items-center text-xs font-black uppercase tracking-widest text-zinc-900">
+                 View History <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="ml-2 h-3 w-3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </div>
+            </Link>
+          </div>
+
+          {/* Sidebar Stats */}
+          <div className="space-y-6">
+            <div className="rounded-3xl bg-zinc-900 p-8 text-white shadow-xl">
+              <h3 className="text-lg font-black tracking-tight">Partner Perks</h3>
+              <ul className="mt-6 space-y-4 text-sm font-bold text-zinc-400">
+                <li className="flex items-center gap-3">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="h-4 w-4 text-emerald-400"><path d="M20 6L9 17l-5-5"/></svg>
+                  Priority Global Support
+                </li>
+                <li className="flex items-center gap-3">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="h-4 w-4 text-emerald-400"><path d="M20 6L9 17l-5-5"/></svg>
+                  Custom Branding Options
+                </li>
+                <li className="flex items-center gap-3">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="h-4 w-4 text-emerald-400"><path d="M20 6L9 17l-5-5"/></svg>
+                  Net-30 Payment Terms
+                </li>
+              </ul>
             </div>
-          </article>
-        </section>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-

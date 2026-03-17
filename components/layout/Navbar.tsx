@@ -4,6 +4,7 @@ import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { StyleConcierge } from "../ai/StyleConcierge"; // Added import
 
 export function Navbar() {
   const { data: session } = useSession();
