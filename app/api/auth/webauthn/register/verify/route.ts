@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Registration challenge expired or not found" }, { status: 400 });
     }
 
-    const verification = await verifyRegistration(session.user.id, body, expectedChallenge);
+    const verification = await verifyRegistration(userId, body, expectedChallenge);
     
     // Clear challenge cookie
     cookieStore.delete("webauthn_registration_challenge");
