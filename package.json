@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "postinstall": "prisma generate",
+    "prebuild": "prisma generate",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -17,6 +19,7 @@
     "readiness:check": "node scripts/readiness-check.js"
   },
   "dependencies": {
+    "@prisma/client": "^4.16.1",
     "@upstash/redis": "^1.37.0",
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
@@ -26,11 +29,11 @@
     "next-auth": "^4.24.13",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "prisma": "^4.16.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
-    "@prisma/client": "^4.16.1",
     "@prisma/config": "^7.5.0",
     "@sendgrid/mail": "^8.1.6",
     "@tailwindcss/postcss": "^4",
@@ -45,7 +48,6 @@
     "eslint-config-next": "16.1.6",
     "nodemailer": "^7.0.13",
     "playwright": "^1.58.2",
-    "prisma": "^4.16.1",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5",
