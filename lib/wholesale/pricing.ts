@@ -16,7 +16,7 @@ export async function getTieredPrice(productId: string, quantity: number, userRo
   let basePrice = userRole === "WHOLESALE" ? product.wholesalePrice : product.retailPrice;
 
   // Check tiers
-  const applicableTier = product.priceTiers.find(tier => 
+  const applicableTier = product.priceTiers.find((tier: any) =>
     tier.type === (userRole === "WHOLESALE" ? "WHOLESALE" : "RETAIL") &&
     quantity >= tier.minQty && 
     (tier.maxQty === 0 || quantity <= tier.maxQty)
