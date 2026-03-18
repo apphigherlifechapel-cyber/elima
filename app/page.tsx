@@ -40,28 +40,44 @@ type FeaturedProduct = Prisma.ProductGetPayload<{
 }>;
 
 export default async function HomePage() {
-  const session = await getServerSession(authOptions);
-  const user = session?.user?.email ? await prisma.user.findUnique({ where: { email: session.user.email } }) : null;
-  const recFlag = await prisma.setting.findUnique({ where: { key: "recommendations_enabled" } });
-  const recommendationsEnabled = recFlag?.value !== "false";
+  let featuredProducts: FeaturedProduct[] = [];
+  let categories: any[] = [];
+  let wholesaleCount = 0;
+  let retailCount = 0;
+  let recs = { personalized: [], trending: [], segment: "GUEST" as const };
 
-  const [featuredProducts, categories, wholesaleCount, retailCount, recs] = await Promise.all([
-    prisma.product.findMany({
-      where: { isAvailable: true },
-      include: { images: true, brand: true, category: true },
-      take: 8,
-      orderBy: [{ stockTotal: "desc" }, { createdAt: "desc" }],
-    }),
-    prisma.category.findMany({
-      where: { products: { some: { isAvailable: true } } },
-      select: { id: true, name: true, slug: true, _count: { select: { products: true } } },
-      orderBy: { name: "asc" },
-      take: 6,
-    }),
-    prisma.product.count({ where: { isAvailable: true, isWholesale: true } }),
-    prisma.product.count({ where: { isAvailable: true, isRetail: true, isWholesale: false } }),
-    recommendationsEnabled ? getRecommendationsForUser(user?.id, { take: 4 }) : Promise.resolve({ personalized: [], trending: [], segment: "GUEST" as const }),
-  ]);
+  try {
+    const session = await getServerSession(authOptions).catch(() => null);
+    const user = session?.user?.email ? await prisma.user.findUnique({ where: { email: session.user.email } }) : null;
+    const recFlag = await prisma.setting.findUnique({ where: { key: "recommendations_enabled" } });
+    const recommendationsEnabled = recFlag?.value !== "false";
+
+    const data = await Promise.all([
+      prisma.product.findMany({
+        where: { isAvailable: true },
+        include: { images: true, brand: true, category: true },
+        take: 8,
+        orderBy: [{ stockTotal: "desc" }, { createdAt: "desc" }],
+      }),
+      prisma.category.findMany({
+        where: { products: { some: { isAvailable: true } } },
+        select: { id: true, name: true, slug: true, _count: { select: { products: true } } },
+        orderBy: { name: "asc" },
+        take: 6,
+      }),
+      prisma.product.count({ where: { isAvailable: true, isWholesale: true } }),
+      prisma.product.count({ where: { isAvailable: true, isRetail: true, isWholesale: false } }),
+      recommendationsEnabled ? getRecommendationsForUser(user?.id, { take: 4 }).catch(() => ({ personalized: [], trending: [], segment: "GUEST" as const })) : Promise.resolve({ personalized: [], trending: [], segment: "GUEST" as const }),
+    ]);
+
+    featuredProducts = data[0] as FeaturedProduct[];
+    categories = data[1];
+    wholesaleCount = data[2];
+    retailCount = data[3];
+    recs = data[4] as any;
+  } catch (error) {
+    console.error("HomePage Data Load Error:", error);
+  }
 
   return (
     <div className="pb-32 overflow-hidden">
