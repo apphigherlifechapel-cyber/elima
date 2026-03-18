@@ -29,15 +29,15 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-[60] glass-nav transition-all duration-300">
-        <div className="page-container flex h-20 items-center justify-between">
+      <div className="fixed top-0 left-0 right-0 z-[60] pt-4 px-4 sm:px-6 pointer-events-none flex justify-center fade-in">
+        <nav className="glass-nav rounded-full px-4 sm:px-6 transition-all duration-500 pointer-events-auto w-full max-w-6xl flex h-16 sm:h-20 items-center justify-between shadow-2xl overflow-hidden">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-950 text-white shadow-lg transition-transform duration-300 group-hover:scale-110">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-5 w-5">
+            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-zinc-900 text-white shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-5 w-5 sm:h-6 sm:w-6 transition-all group-hover:text-emerald-400">
                 <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
             </div>
-            <span className="text-2xl font-black tracking-[-0.03em] text-emerald-950">Elima</span>
+            <span className="text-xl sm:text-2xl font-black tracking-tight text-zinc-900">Elima</span>
           </Link>
 
           <div className="hidden items-center gap-9 text-[13px] font-bold uppercase tracking-[0.1em] text-zinc-600 lg:flex">
@@ -103,18 +103,18 @@ export function Navbar() {
 
             <button
               onClick={() => setOpen(true)}
-              className="rounded-full bg-zinc-100 p-2.5 text-zinc-900 transition hover:bg-emerald-100 lg:hidden"
+              className="rounded-full bg-zinc-100 p-2.5 text-zinc-900 transition-all duration-300 hover:bg-emerald-100 hover:scale-110 lg:hidden focus:ring-4 focus:ring-emerald-500/20"
               aria-label="Open menu"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="18" x2="21" y2="18" />
+                <line x1="4" y1="12" x2="20" y2="12" />
+                <line x1="4" y1="6" x2="20" y2="6" />
+                <line x1="4" y1="18" x2="20" y2="18" />
               </svg>
             </button>
           </div>
-        </div>
-      </nav>
+        </nav>
+      </div>
 
       {/* Slide-over Drawer (Mobile) */}
       <div 

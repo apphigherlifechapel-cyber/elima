@@ -1,4 +1,4 @@
-﻿import Image from "next/image";
+import Image from "next/image";
 import Link from "next/link";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
@@ -191,7 +191,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         </section>
 
         {recs.personalized.length > 0 ? (
-          <section className="mt-6 soft-card rounded-3xl p-4 sm:p-5">
+          <section className="mt-6 glass-card rounded-[2rem] p-5 sm:p-6">
             <div className="mb-3 flex items-end justify-between gap-3">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.15em] text-[var(--primary-strong)]">Just For You</p>
@@ -205,7 +205,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         ) : null}
 
         <div className="mt-7 grid gap-6 lg:grid-cols-[300px_1fr]">
-          <aside className="soft-card h-fit rounded-3xl p-4 sm:p-5">
+          <aside className="glass-card hover-lift h-fit rounded-[2rem] p-5 sm:p-6">
             <h2 className="text-xs font-black uppercase tracking-[0.15em] text-[var(--foreground)]">Filter & Search</h2>
 
             <form action="/shop" className="mt-4 space-y-3">
@@ -326,14 +326,14 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
             </div>
 
             {pagedProducts.length === 0 ? (
-              <div className="glass rounded-2xl p-8 text-center">
-                <p className="text-base font-bold text-[var(--foreground)]">No products match your filters.</p>
+              <div className="glass-card rounded-[2rem] p-10 text-center">
+                <p className="text-lg font-black text-[var(--foreground)]">No products match your filters.</p>
                 <p className="mt-1 text-sm text-[var(--muted-foreground)]">Try changing search criteria or clear filters.</p>
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {pagedProducts.map((product: ShopProduct) => (
-                  <article key={product.id} className="soft-card rounded-2xl p-3 sm:p-4">
+                  <article key={product.id} className="glass-card hover-lift relative rounded-[2rem] p-4">
                     <Link href={`/product/${product.slug}`} className="group block">
                       <div className="relative mb-3 h-52 overflow-hidden rounded-xl bg-[var(--surface-2)]">
                         {product.images?.[0]?.url ? (

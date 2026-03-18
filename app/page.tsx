@@ -101,9 +101,9 @@ export default async function HomePage() {
                 </div>
               </div>
 
-              <div className="hidden lg:block slide-up" style={{ animationDelay: "0.2s" }}>
-                <div className="glass rounded-[2rem] p-8">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-900 mb-6">Catalog Snapshot</p>
+              <div className="hidden lg:block slide-up animate-float" style={{ animationDelay: "0.2s" }}>
+                <div className="glass-card rounded-[2.5rem] p-8">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-900 mb-6 drop-shadow-sm">Catalog Snapshot</p>
                   <div className="grid grid-cols-2 gap-4">
                     {[
                       { val: `${featuredProducts.length}+`, label: "Featured" },
@@ -131,11 +131,11 @@ export default async function HomePage() {
       <section className="mt-16">
         <div className="page-container h-full">
            <div className="relative -mx-5 px-5 overflow-x-auto no-scrollbar sm:mx-0 sm:px-0 sm:overflow-visible">
-            <div className="flex gap-4 sm:grid sm:grid-cols-3">
+            <div className="flex gap-4 sm:grid sm:grid-cols-3 pb-8 sm:pb-0">
               {valuePillars.map((pillar) => (
-                <article key={pillar.title} className="premium-card min-w-[300px] rounded-[2rem] p-8 sm:min-w-0">
+                <article key={pillar.title} className="glass-card hover-lift min-w-[300px] rounded-[2rem] p-8 sm:min-w-0">
                   <h2 className="text-xl font-black tracking-tight text-emerald-950">{pillar.title}</h2>
-                  <p className="mt-4 text-[15px] leading-relaxed text-zinc-600">{pillar.desc}</p>
+                  <p className="mt-4 text-[15px] leading-relaxed text-zinc-600 font-medium">{pillar.desc}</p>
                 </article>
               ))}
             </div>
@@ -198,11 +198,11 @@ export default async function HomePage() {
           </div>
 
           <div className="relative -mx-5 px-5 overflow-x-auto no-scrollbar sm:mx-0 sm:px-0 sm:overflow-visible">
-            <div className="flex gap-4 pb-6 sm:grid sm:grid-cols-2 xl:grid-cols-4 sm:pb-0">
+            <div className="flex gap-4 pb-12 sm:grid sm:grid-cols-2 xl:grid-cols-4 sm:pb-0">
               {featuredProducts.map((product: FeaturedProduct) => (
-                <article key={product.id} className="premium-card min-w-[280px] rounded-[2rem] p-4 sm:min-w-0">
+                <article key={product.id} className="glass-card hover-lift min-w-[280px] rounded-[2.5rem] p-4 sm:min-w-0">
                   <Link href={`/product/${product.slug}`} className="group block">
-                    <div className="relative mb-4 aspect-[4/5] overflow-hidden rounded-2xl bg-zinc-100">
+                    <div className="relative mb-5 aspect-[4/5] overflow-hidden rounded-[2rem] bg-zinc-100 shadow-inner">
                       {product.images?.[0]?.url ? (
                         <Image
                           src={product.images[0].url}
@@ -234,14 +234,14 @@ export default async function HomePage() {
                       <h3 className="line-clamp-2 text-xl font-black tracking-tight group-hover:text-emerald-700 transition-colors">
                         {product.title}
                       </h3>
-                      <div className="pt-2 flex items-center justify-between">
+                      <div className="pt-3 flex items-center justify-between">
                         <div className="space-y-0.5">
                           <p className="text-2xl font-black text-emerald-900">{formatCedis(Number(product.retailPrice || 0))}</p>
                           {product.isWholesale && (
-                            <p className="text-[10px] font-bold text-zinc-500 italic">Bulk rates available</p>
+                            <p className="text-[10px] font-bold text-emerald-600 italic">Bulk rates available</p>
                           )}
                         </div>
-                        <div className="rounded-full bg-zinc-100 p-2.5 group-hover:bg-emerald-600 group-hover:text-white transition-all transform group-hover:rotate-90">
+                        <div className="rounded-full bg-zinc-100 p-3 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 transform group-hover:rotate-45 shadow-sm group-hover:shadow-md">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-5 w-5">
                             <line x1="12" y1="5" x2="12" y2="19" />
                             <line x1="5" y1="12" x2="19" y2="12" />
@@ -260,7 +260,7 @@ export default async function HomePage() {
       {/* Wholesale CTA */}
       <section className="mt-32">
         <div className="page-container">
-          <div className="glass rounded-[3rem] p-10 sm:p-20 text-center lg:text-left">
+          <div className="glass-card premium-shadow rounded-[3rem] p-10 sm:p-20 text-center lg:text-left">
             <div className="grid items-center gap-12 lg:grid-cols-[1.2fr_0.8fr]">
               <div>
                 <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-4">Ready to Scale?</p>
