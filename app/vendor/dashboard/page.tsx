@@ -32,8 +32,8 @@ export default async function VendorDashboard() {
     })
   ]);
 
-  const totalSales = orderItems.reduce((sum, item) => sum + item.totalPrice, 0);
-  const pendingFulfillment = orderItems.filter(i => i.fulfillmentStatus === "PENDING").length;
+  const totalSales = orderItems.reduce((sum: number, item: any) => sum + item.totalPrice, 0);
+  const pendingFulfillment = orderItems.filter((i: any) => i.fulfillmentStatus === "PENDING").length;
 
   return (
     <div className="min-h-screen bg-zinc-50/30">
@@ -82,7 +82,7 @@ export default async function VendorDashboard() {
                        </tr>
                      </thead>
                      <tbody className="divide-y divide-zinc-50">
-                       {orderItems.slice(0, 10).map((item) => (
+                       {orderItems.slice(0, 10).map((item: any) => (
                          <tr key={item.id} className="text-sm">
                            <td className="py-4 font-bold text-zinc-900">#{item.orderId.slice(-6)}</td>
                            <td className="py-4 font-bold text-zinc-500">{item.quantity}x</td>
