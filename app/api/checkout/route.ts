@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
 
       const order = await prisma.order.create({
         data: {
-          userId: guestUser.id,
+          user: { connect: { id: guestUser.id } },
           type: "RETAIL",
           status: "PENDING",
           fulfillmentStatus: "PENDING",
@@ -293,7 +293,7 @@ export async function POST(req: NextRequest) {
 
     const order = await prisma.order.create({
       data: {
-        userId: user.id,
+        user: { connect: { id: user.id } },
         type: user.accountType === "WHOLESALE" ? "WHOLESALE" : "RETAIL",
         status: "PENDING",
         fulfillmentStatus: "PENDING",
