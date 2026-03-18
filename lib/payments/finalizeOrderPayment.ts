@@ -78,11 +78,9 @@ export async function finalizePaystackOrderPayment(
             where: {
               id: item.variantId,
               stock: { gte: item.quantity },
-              stockReserved: { gte: item.quantity },
             },
             data: {
               stock: { decrement: item.quantity },
-              stockReserved: { decrement: item.quantity },
             },
           });
 
@@ -94,11 +92,9 @@ export async function finalizePaystackOrderPayment(
             where: {
               id: item.productId,
               stockTotal: { gte: item.quantity },
-              stockReserved: { gte: item.quantity },
             },
             data: {
               stockTotal: { decrement: item.quantity },
-              stockReserved: { decrement: item.quantity },
             },
           });
 
