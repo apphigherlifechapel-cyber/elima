@@ -19,16 +19,19 @@ function LoginForm() {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
     const result = await signIn("credentials", {
       email: email.trim(),
       password,
       redirect: false,
     });
-    setLoading(false);
-    if (result?.error) {
-      setError("Invalid email or password.");
+
+    if (result?.error || !result?.ok) {
+      setLoading(false);
+      setError("Invalid email or password. Please try again.");
     } else {
-      window.location.href = "/";
+      // Full browser reload ensures the HttpOnly session cookie is read globally
+      window.location.replace("/");
     }
   }
 
