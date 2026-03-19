@@ -8,11 +8,11 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/next-auth";
 
 interface ProductPageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const slug = params?.slug;
+  const { slug } = await params;
   if (!slug) return notFound();
 
   const product = await prisma.product.findUnique({
