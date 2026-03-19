@@ -1,107 +1,84 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/next-auth";
 import { prisma } from "@/lib/db/prisma";
-import QuoteActionButtons from "@/components/admin/QuoteActionButtons";
-import { formatCedis } from "@/lib/utils/currency";
-import { Product, Quote, QuoteItem, User } from "@prisma/client";
-import QuoteRepriceForm from "@/components/admin/QuoteRepriceForm";
 import Link from "next/link";
 
-type AdminQuoteRow = Quote & {
-  user: Pick<User, "email" | "name">;
-  items: Array<QuoteItem & { product: Pick<Product, "id" | "title"> }>;
-};
-
-function tone(status: string) {
-  if (status === "APPROVED") return "bg-emerald-100 text-emerald-700 border-emerald-200";
-  if (status === "PENDING" || status === "REVIEWING") return "bg-amber-100 text-amber-700 border-amber-200";
-  if (status === "REJECTED") return "bg-rose-100 text-rose-700 border-rose-200";
-  return "bg-[var(--surface-2)] text-[var(--muted-foreground)] border-[var(--border-soft)]";
+async function requireAdmin() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return null;
+  const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+  return user?.role === "ADMIN" ? user : null;
 }
 
 export default async function AdminQuotesPage() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return <div className="p-8">Unauthorized</div>;
+  const admin = await requireAdmin();
+  if (!admin) {
+    return (
+      <div className="p-8">
+        <h1 className="text-2xl font-bold">Access Denied</h1>
+        <p className="mt-2 text-zinc-600">Admins only.</p>
+        <Link href="/login" className="mt-4 inline-block text-blue-600 hover:underline">Sign in</Link>
+      </div>
+    );
   }
 
-  const admin = await prisma.user.findUnique({ where: { email: session.user.email } });
-  if (!admin || admin.role !== "ADMIN") {
-    return <div className="p-8">Forbidden</div>;
-  }
-
-  const quotes: AdminQuoteRow[] = await prisma.quote.findMany({
-    include: {
-      user: { select: { email: true, name: true } },
-      items: {
-        include: {
-          product: {
-            select: {
-              id: true,
-              title: true,
-            },
-          },
-        },
-      },
-    },
+  const quotes = await prisma.quote.findMany({
     orderBy: { createdAt: "desc" },
+    include: { user: true, items: { include: { product: true } } },
     take: 100,
   });
 
-  return (
-    <div className="space-y-6">
-      <section className="soft-card rounded-2xl p-5 sm:p-6">
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--muted-foreground)]">Wholesale Workflow</p>
-        <h1 className="mt-1 text-2xl font-black tracking-tight">Quotes</h1>
-      </section>
+  const statusBadge = (status: string) => {
+    const map: Record<string, string> = {
+      DRAFT: "bg-zinc-100 text-zinc-600",
+      PENDING: "bg-yellow-100 text-yellow-700",
+      APPROVED: "bg-green-100 text-green-700",
+      REJECTED: "bg-red-100 text-red-600",
+      CONVERTED: "bg-blue-100 text-blue-700",
+    };
+    return map[status] ?? "bg-zinc-100 text-zinc-600";
+  };
 
-      <section className="soft-card overflow-x-auto rounded-2xl p-4 sm:p-5">
-        <table className="w-full min-w-[990px] text-left text-sm">
-          <thead className="text-xs uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
+  return (
+    <div className="p-8">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Quotes</h1>
+        <Link href="/admin" className="rounded-lg border px-4 py-2 text-sm hover:bg-zinc-50">← Dashboard</Link>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border bg-white shadow-sm">
+        <table className="w-full min-w-[700px] text-sm">
+          <thead className="border-b bg-zinc-50 text-left text-xs font-semibold uppercase text-zinc-500">
             <tr>
-              <th className="px-3 py-2">Quote ID</th>
-              <th className="px-3 py-2">User</th>
-              <th className="px-3 py-2">Items</th>
-              <th className="px-3 py-2">Total</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">Created</th>
-              <th className="px-3 py-2">Actions</th>
+              <th className="px-4 py-3">Quote ID</th>
+              <th className="px-4 py-3">Customer</th>
+              <th className="px-4 py-3">Items</th>
+              <th className="px-4 py-3">Total</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Date</th>
             </tr>
           </thead>
-          <tbody>
-            {quotes.map((quote: AdminQuoteRow) => (
-              <tr key={quote.id} className="border-t border-[var(--border-soft)] align-top">
-                <td className="px-3 py-3 font-mono text-xs">{quote.id.slice(0, 10)}...</td>
-                <td className="px-3 py-3">{quote.user.email}</td>
-                <td className="px-3 py-3">{quote.items.length}</td>
-                <td className="px-3 py-3 font-semibold">{formatCedis(quote.total)}</td>
-                <td className="px-3 py-3">
-                  <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-bold ${tone(quote.status)}`}>
-                    {quote.status}
+          <tbody className="divide-y">
+            {quotes.map((q: any) => (
+              <tr key={q.id} className="hover:bg-zinc-50">
+                <td className="px-4 py-3 font-mono text-xs">{q.id.slice(0, 8)}…</td>
+                <td className="px-4 py-3">{q.user.email}</td>
+                <td className="px-4 py-3">{q.items.length}</td>
+                <td className="px-4 py-3 font-medium">₦{q.total.toFixed(2)}</td>
+                <td className="px-4 py-3">
+                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${statusBadge(q.status)}`}>
+                    {q.status}
                   </span>
                 </td>
-                <td className="px-3 py-3 text-xs text-[var(--muted-foreground)]">{new Date(quote.createdAt).toLocaleString()}</td>
-                <td className="px-3 py-3">
-                  <Link href={`/admin/quotes/${quote.id}`} className="btn-secondary mb-2 inline-flex text-xs">
-                    Open Detail
-                  </Link>
-                  <QuoteActionButtons quoteId={quote.id} status={quote.status} />
-                  <QuoteRepriceForm
-                    quoteId={quote.id}
-                    items={quote.items.map((item) => ({
-                      id: item.id,
-                      productId: item.productId,
-                      productTitle: item.product?.title || null,
-                      quantity: item.quantity,
-                      unitPrice: item.unitPrice,
-                    }))}
-                  />
-                </td>
+                <td className="px-4 py-3 text-zinc-500">{new Date(q.createdAt).toLocaleDateString()}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      </section>
+        {quotes.length === 0 && (
+          <p className="p-6 text-center text-zinc-500">No quotes yet.</p>
+        )}
+      </div>
     </div>
   );
 }

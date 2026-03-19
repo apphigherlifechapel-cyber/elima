@@ -1,80 +1,87 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/next-auth";
 import { prisma } from "@/lib/db/prisma";
-import WholesaleActionButtons from "@/components/admin/WholesaleActionButtons";
-import { User, WholesaleApplication } from "@prisma/client";
+import Link from "next/link";
 
-type WholesaleApplicationRow = WholesaleApplication & {
-  user: Pick<User, "id" | "email" | "name">;
-};
-
-function tone(status: string) {
-  if (status === "APPROVED") return "bg-emerald-100 text-emerald-700 border-emerald-200";
-  if (status === "PENDING") return "bg-amber-100 text-amber-700 border-amber-200";
-  if (status === "REJECTED") return "bg-rose-100 text-rose-700 border-rose-200";
-  return "bg-[var(--surface-2)] text-[var(--muted-foreground)] border-[var(--border-soft)]";
+async function requireAdmin() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return null;
+  const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+  return user?.role === "ADMIN" ? user : null;
 }
 
 export default async function AdminWholesaleApplicationsPage() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return <div className="p-8">Unauthorized</div>;
+  const admin = await requireAdmin();
+  if (!admin) {
+    return (
+      <div className="p-8">
+        <h1 className="text-2xl font-bold">Access Denied</h1>
+        <p className="mt-2 text-zinc-600">Admins only.</p>
+        <Link href="/login" className="mt-4 inline-block text-blue-600 hover:underline">Sign in</Link>
+      </div>
+    );
   }
 
-  const admin = await prisma.user.findUnique({ where: { email: session.user.email } });
-  if (!admin || admin.role !== "ADMIN") {
-    return <div className="p-8">Forbidden</div>;
-  }
-
-  const applications: WholesaleApplicationRow[] = await prisma.wholesaleApplication.findMany({
-    include: {
-      user: {
-        select: { id: true, email: true, name: true },
-      },
-    },
+  const applications = await prisma.wholesaleApplication.findMany({
     orderBy: { submittedAt: "desc" },
-    take: 100,
+    include: { user: true },
   });
 
-  return (
-    <div className="space-y-6">
-      <section className="soft-card rounded-2xl p-5 sm:p-6">
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--muted-foreground)]">Wholesale Onboarding</p>
-        <h1 className="mt-1 text-2xl font-black tracking-tight">Applications</h1>
-      </section>
+  const statusBadge = (status: string) => {
+    const map: Record<string, string> = {
+      PENDING: "bg-yellow-100 text-yellow-700",
+      APPROVED: "bg-green-100 text-green-700",
+      REJECTED: "bg-red-100 text-red-600",
+    };
+    return map[status] ?? "bg-zinc-100 text-zinc-600";
+  };
 
-      <section className="soft-card overflow-x-auto rounded-2xl p-4 sm:p-5">
-        <table className="w-full min-w-[820px] text-left text-sm">
-          <thead className="text-xs uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
+  return (
+    <div className="p-8">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Wholesale Applications</h1>
+        <Link href="/admin" className="rounded-lg border px-4 py-2 text-sm hover:bg-zinc-50">← Dashboard</Link>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border bg-white shadow-sm">
+        <table className="w-full min-w-[700px] text-sm">
+          <thead className="border-b bg-zinc-50 text-left text-xs font-semibold uppercase text-zinc-500">
             <tr>
-              <th className="px-3 py-2">Applicant</th>
-              <th className="px-3 py-2">Company</th>
-              <th className="px-3 py-2">Website</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">Submitted</th>
-              <th className="px-3 py-2">Action</th>
+              <th className="px-4 py-3">Company</th>
+              <th className="px-4 py-3">Applicant</th>
+              <th className="px-4 py-3">Website</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Submitted</th>
+              <th className="px-4 py-3">Notes</th>
             </tr>
           </thead>
-          <tbody>
-            {applications.map((app: WholesaleApplicationRow) => (
-              <tr key={app.id} className="border-t border-[var(--border-soft)] align-top">
-                <td className="px-3 py-3">{app.user.email}</td>
-                <td className="px-3 py-3 font-semibold">{app.companyName}</td>
-                <td className="px-3 py-3">{app.website || "-"}</td>
-                <td className="px-3 py-3">
-                  <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-bold ${tone(app.status)}`}>
+          <tbody className="divide-y">
+            {applications.map((app: any) => (
+              <tr key={app.id} className="hover:bg-zinc-50">
+                <td className="px-4 py-3 font-medium">{app.companyName}</td>
+                <td className="px-4 py-3">{app.user.email}</td>
+                <td className="px-4 py-3">
+                  {app.website ? (
+                    <a href={app.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      {app.website.replace(/^https?:\/\//, "")}
+                    </a>
+                  ) : "—"}
+                </td>
+                <td className="px-4 py-3">
+                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${statusBadge(app.status)}`}>
                     {app.status}
                   </span>
                 </td>
-                <td className="px-3 py-3 text-xs text-[var(--muted-foreground)]">{new Date(app.submittedAt).toLocaleString()}</td>
-                <td className="px-3 py-3">
-                  <WholesaleActionButtons userId={app.userId} />
-                </td>
+                <td className="px-4 py-3 text-zinc-500">{new Date(app.submittedAt).toLocaleDateString()}</td>
+                <td className="px-4 py-3 text-zinc-500 max-w-[160px] truncate">{app.notes ?? "—"}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      </section>
+        {applications.length === 0 && (
+          <p className="p-6 text-center text-zinc-500">No wholesale applications yet.</p>
+        )}
+      </div>
     </div>
   );
 }

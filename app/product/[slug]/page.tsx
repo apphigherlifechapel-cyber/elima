@@ -1,144 +1,107 @@
-import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
+import { prisma } from "@/lib/db/prisma";
+import type { ProductImage, ProductVariant } from "@prisma/client";
+import Link from "next/link";
+import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/next-auth";
-import { prisma } from "@/lib/db/prisma";
-import { formatCedis } from "@/lib/utils/currency";
-import ProductReviews from "@/components/product/ProductReviews";
-import ProductPurchasePanel from "@/components/product/ProductPurchasePanel";
-import type { ProductImage, ProductVariant } from "@prisma/client";
-import ProductImageGallery from "@/components/product/ProductImageGallery";
-import { trackEvent } from "@/lib/analytics.events";
 
-type ProductPageProps = {
-  params: Promise<{ slug: string }>;
-};
+interface ProductPageProps {
+  params: { slug: string };
+}
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const { slug } = await params;
+  const slug = params?.slug;
   if (!slug) return notFound();
 
   const product = await prisma.product.findUnique({
     where: { slug },
-    include: { images: true, variants: true, brand: true, category: true, vendor: true },
+    include: { images: true, variants: true, brand: true, category: true },
   });
   if (!product) return notFound();
 
   const session = await getServerSession(authOptions);
-  const user = session?.user?.email ? await prisma.user.findUnique({ where: { email: session.user.email } }) : null;
-
-  await trackEvent({
-    name: "product_view",
-    userId: user?.id,
-    metadata: {
-      productId: product.id,
-      slug: product.slug,
-      isWholesale: product.isWholesale,
-      retailPrice: Number(product.retailPrice || 0),
-    },
-  });
-
-  const canReview = Boolean(
-    user &&
-      (await prisma.orderItem.count({
-        where: { productId: product.id, order: { userId: user.id, status: "PAID" } },
-      })) > 0
-  );
+  let userId: string | null = null;
+  if (session?.user?.email) {
+    const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
+    userId = user?.id ?? null;
+  }
 
   return (
-    <div className="pb-20 pt-8 sm:pt-10">
-      <div className="page-wrap">
-        <section className="glass rounded-3xl p-5 sm:p-8">
-          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
-            <Link href="/" className="hover:text-[var(--foreground)]">Home</Link>
-            <span>•</span>
-            <Link href="/shop" className="hover:text-[var(--foreground)]">Shop</Link>
-            <span>•</span>
-            <Link href={`/category/${product.category?.slug}`} className="hover:text-[var(--foreground)]">
-              {product.category?.name || "Category"}
-            </Link>
+    <div className="mx-auto max-w-5xl p-8">
+      <div className="mb-6 flex justify-between">
+        <div>
+          <p className="text-sm text-zinc-500">{product.category?.name ?? "Uncategorised"}</p>
+          <h1 className="text-3xl font-bold">{product.title}</h1>
+          {product.brand && <p className="mt-1 text-sm text-zinc-500">by {product.brand.name}</p>}
+        </div>
+        <Link href="/shop" className="text-sm text-blue-600 hover:underline">← Back to Shop</Link>
+      </div>
+
+      <div className="grid gap-8 md:grid-cols-2">
+        {/* Images */}
+        <div className="space-y-3">
+          {product.images.length > 0 ? (
+            product.images.map((img: ProductImage) => (
+              <Image
+                key={img.id}
+                src={img.url}
+                alt={img.altText ?? product.title}
+                width={800}
+                height={450}
+                className="h-72 w-full rounded-xl object-cover"
+                unoptimized
+              />
+            ))
+          ) : (
+            <div className="flex h-64 items-center justify-center rounded-xl bg-zinc-100 text-zinc-400">No image</div>
+          )}
+        </div>
+
+        {/* Details */}
+        <div className="space-y-5">
+          <p className="text-zinc-700">{product.description}</p>
+
+          <div className="rounded-xl border bg-white p-4 shadow-sm">
+            <p className="text-2xl font-bold">₦{(product.retailPrice || 0).toFixed(2)}</p>
+            {product.isWholesale && (
+              <p className="mt-1 text-sm text-green-700">Wholesale: ₦{(product.wholesalePrice || 0).toFixed(2)}</p>
+            )}
+            <p className="mt-2 text-sm text-zinc-500">MOQ: {product.moq} | In stock: {product.stockTotal}</p>
           </div>
 
-          <div className="mt-4 grid gap-8 lg:grid-cols-[1.06fr_0.94fr]">
-            <ProductImageGallery
-              title={product.title}
-              images={product.images.map((img: ProductImage) => ({
-                id: img.id,
-                url: img.url,
-                altText: img.altText,
-              }))}
-            />
-
+          {product.variants.length > 0 && (
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--primary-strong)]">
-                {product.brand?.name ?? "Elima Studio"}
-              </p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-[var(--foreground)] sm:text-4xl">{product.title}</h1>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-700 sm:text-base">{product.description}</p>
-
-              <div className="mt-5 flex flex-wrap items-center gap-2 text-[11px] font-black uppercase tracking-wide">
-                {product.vendor && (
-                  <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-emerald-700">
-                    Sold by {product.vendor.storeName}
-                  </span>
-                )}
-                {product.isWholesale ? (
-                  <span className="rounded-full border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-1 text-[var(--primary-strong)]">
-                    Wholesale Enabled
-                  </span>
-                ) : (
-                  <span className="rounded-full border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-1 text-[var(--foreground)]">
-                    Retail Product
-                  </span>
-                )}
-                <span className="rounded-full border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-1 text-[var(--foreground)]">
-                  {product.stockTotal > 0 ? `${product.stockTotal} in stock` : "Out of stock"}
-                </span>
-              </div>
-
-              <div className="mt-5">
-                <p className="text-3xl font-black text-[var(--foreground)]">{formatCedis(Number(product.retailPrice || 0))}</p>
-                {product.isWholesale ? (
-                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-                    Wholesale from {formatCedis(Number(product.wholesalePrice || 0))} • MOQ {product.moq}
-                  </p>
-                ) : null}
-              </div>
-
-              <div className="mt-6">
-                <ProductPurchasePanel
-                  userId={user?.id}
-                  productId={product.id}
-                  productTitle={product.title}
-                  productStock={product.stockTotal}
-                  defaultRetailPrice={Number(product.retailPrice || 0)}
-                  variants={product.variants.map((v: ProductVariant) => ({
-                    id: v.id,
-                    sku: v.sku,
-                    size: v.size,
-                    color: v.color,
-                    stock: v.stock,
-                    retailPrice: v.retailPrice,
-                  }))}
-                  isWholesale={product.isWholesale}
-                  moq={product.moq}
-                />
-              </div>
-
-              {!user ? (
-                <div className="mt-4 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] p-4 text-sm text-[var(--muted-foreground)]">
-                  You are in guest mode. Sign in for account-linked cart, wishlist sync, and faster checkout.
-                </div>
-              ) : null}
+              <h3 className="mb-2 font-semibold">Variants</h3>
+              <ul className="space-y-1">
+                {product.variants.map((v: ProductVariant) => (
+                  <li key={v.id} className="rounded-lg border px-3 py-2 text-sm">
+                    {v.sku} {v.size && `(${v.size})`} {v.color && `· ${v.color}`} — ₦{v.retailPrice.toFixed(2)} · stock: {v.stock}
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
-        </section>
+          )}
 
-        <section className="mt-10">
-          <ProductReviews productId={product.id} canReview={canReview} />
-        </section>
+          <div className="rounded-xl border bg-white p-4 shadow-sm">
+            {userId ? (
+              <>
+                <h3 className="mb-3 font-semibold">Add to Cart</h3>
+                <AddToCartButton
+                  userId={userId}
+                  productId={product.id}
+                  variantId={product.variants?.[0]?.id}
+                />
+              </>
+            ) : (
+              <p className="text-sm text-zinc-600">
+                <Link href="/login" className="font-medium text-blue-600 hover:underline">Sign in</Link> to add to cart.
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-

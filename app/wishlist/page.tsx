@@ -1,158 +1,101 @@
-"use client";
-
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth/next-auth";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/db/prisma";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
-type WishlistItem = {
-  id: string;
-  productId: string;
-  variantId: string | null;
-  product: {
-    id: string;
-    title: string;
-    slug: string;
-    retailPrice: number;
-    images: Array<{ url: string; altText: string | null }>;
-  };
-};
+export default async function WishlistPage() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) redirect("/login");
 
-export default function WishlistPage() {
-  const [items, setItems] = useState<WishlistItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+  if (!user) redirect("/login");
 
-  async function loadWishlist() {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/wishlist");
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Failed to load wishlist");
-      } else {
-        setItems(data.items || []);
-      }
-    } catch {
-      setError("Network error");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const wishlist = await prisma.wishlist.findUnique({
+    where: { userId: user.id },
+    include: {
+      items: {
+        include: {
+          product: { include: { images: { take: 1, orderBy: { sortOrder: "asc" } } } },
+          variant: true,
+        },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
 
-  useEffect(() => {
-    void loadWishlist();
-  }, []);
-
-  async function removeItem(item: WishlistItem) {
-    setBusyId(item.id);
-    setError(null);
-    const res = await fetch("/api/wishlist", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "remove", wishlistItemId: item.id }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setBusyId(null);
-      setError(data.error || "Failed to remove item");
-      return;
-    }
-    await loadWishlist();
-    setBusyId(null);
-  }
-
-  async function moveToCart(item: WishlistItem) {
-    setBusyId(item.id);
-    setError(null);
-    const res = await fetch("/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        productId: item.productId,
-        variantId: item.variantId,
-        quantity: 1,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setBusyId(null);
-      setError(data.error || "Failed to add to cart");
-      return;
-    }
-    await removeItem(item);
-    setBusyId(null);
-  }
-
-  if (loading) {
-    return (
-      <div className="page-wrap py-12">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="soft-card rounded-2xl p-4">
-              <div className="skeleton h-48 w-full rounded-xl" />
-              <div className="skeleton mt-3 h-4 w-2/3" />
-              <div className="skeleton mt-2 h-3 w-1/3" />
-              <div className="mt-3 flex gap-2">
-                <div className="skeleton h-8 w-24" />
-                <div className="skeleton h-8 w-20" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return <div className="page-wrap py-12 text-sm text-red-600">{error}</div>;
-  }
+  const items = wishlist?.items ?? [];
 
   return (
-    <div className="pb-16 pt-8 sm:pt-10">
-      <div className="page-wrap">
-        <h1 className="fade-in-up text-3xl font-black tracking-tight text-[var(--foreground)] sm:text-4xl">Wishlist</h1>
-        {items.length === 0 ? (
-          <div className="glass fade-in-up mt-4 rounded-2xl p-6 text-sm text-[var(--muted-foreground)]">
-            Wishlist is empty. <Link href="/shop" className="font-bold text-[var(--primary)] hover:text-[var(--primary-strong)]">Browse products</Link>
-          </div>
-        ) : (
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item, index) => (
-              <div key={item.id} className={`soft-card fade-in-up rounded-2xl p-4 ${index < 4 ? `stagger-${index + 1}` : ""}`}>
-                <Link href={`/product/${item.product.slug}`}>
-                  <div className="relative h-48 w-full overflow-hidden rounded-xl bg-[var(--surface-2)]">
-                    {item.product.images[0]?.url ? (
-                      <Image
-                        src={item.product.images[0].url}
-                        alt={item.product.images[0].altText || item.product.title}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-[var(--muted-foreground)]">No image</div>
-                    )}
-                  </div>
+    <div className="mx-auto max-w-5xl p-8">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Wishlist</h1>
+        <Link href="/shop" className="text-sm text-blue-600 hover:underline">Browse products</Link>
+      </div>
+
+      {items.length === 0 ? (
+        <div className="rounded-xl border bg-white p-10 text-center shadow-sm">
+          <p className="text-lg text-zinc-500">Your wishlist is empty.</p>
+          <Link href="/shop" className="mt-4 inline-block rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+            Start Shopping
+          </Link>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((item: any) => {
+            const product = item.product;
+            const image = product.images[0];
+            return (
+              <div key={item.id} className="flex flex-col rounded-xl border bg-white shadow-sm overflow-hidden">
+                <Link href={`/product/${product.slug}`} className="relative block h-44 bg-zinc-100">
+                  {image ? (
+                    <Image src={image.url} alt={image.altText ?? product.title} fill className="object-cover" unoptimized />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-zinc-400 text-sm">No image</div>
+                  )}
                 </Link>
-                <h2 className="mt-3 text-base font-black text-[var(--foreground)]">{item.product.title}</h2>
-                <p className="mt-1 text-sm text-[var(--muted-foreground)]">GHS {item.product.retailPrice.toFixed(2)}</p>
-                <div className="mt-3 flex gap-2">
-                  <button disabled={busyId === item.id} onClick={() => moveToCart(item)} className="btn-primary rounded-full px-3 py-2 text-xs font-bold disabled:opacity-60">
-                    {busyId === item.id ? "Updating..." : "Move to cart"}
-                  </button>
-                  <button disabled={busyId === item.id} onClick={() => removeItem(item)} className="btn-secondary rounded-full px-3 py-2 text-xs font-bold disabled:opacity-60">
-                    Remove
-                  </button>
+                <div className="flex flex-1 flex-col p-4">
+                  <Link href={`/product/${product.slug}`} className="font-semibold hover:text-blue-600">
+                    {product.title}
+                  </Link>
+                  {item.variant && <p className="text-xs text-zinc-500 mt-0.5">Variant: {item.variant.sku}</p>}
+                  <p className="mt-1 text-sm font-bold text-zinc-900">₦{product.retailPrice.toFixed(2)}</p>
+                  <div className="mt-3 flex gap-2">
+                    <WishlistRemoveButton itemId={item.id} />
+                    <Link
+                      href={`/product/${product.slug}`}
+                      className="flex-1 rounded-lg border px-3 py-1.5 text-center text-xs font-semibold hover:bg-zinc-50"
+                    >
+                      View
+                    </Link>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
-
+// Small inline client component for the remove button
+function WishlistRemoveButton({ itemId }: { itemId: string }) {
+  // We use a form action approach since this is a server component file
+  return (
+    <form
+      action={async () => {
+        "use server";
+        await prisma.wishlistItem.delete({ where: { id: itemId } });
+      }}
+    >
+      <button
+        type="submit"
+        className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100"
+      >
+        Remove
+      </button>
+    </form>
+  );
+}
