@@ -11,15 +11,29 @@ interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
+  
   if (!slug) return notFound();
 
-  const product = await prisma.product.findUnique({
-    where: { slug },
+  // Try finding the product. Using findFirst with case-insensitivity just in case
+  const product = await prisma.product.findFirst({
+    where: { 
+      slug: {
+        equals: slug,
+        mode: 'insensitive'
+      }
+    },
     include: { images: true, variants: true, brand: true, category: true },
   });
-  if (!product) return notFound();
+
+  if (!product) {
+    console.error(`Product not found for slug: ${slug}`);
+    return notFound();
+  }
 
   const session = await getServerSession(authOptions);
   let userId: string | null = null;
