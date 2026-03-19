@@ -7,7 +7,7 @@ import Link from "next/link";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/next-auth";
-import { ProductClientWrapper } from "@/components/product/ProductClientWrapper";
+import { ProductClientWrapper } from "../../../components/product/ProductClientWrapper";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
