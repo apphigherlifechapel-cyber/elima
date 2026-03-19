@@ -12,6 +12,7 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const isAdmin = user?.role === "ADMIN";
+  const isVendor = user?.role === "VENDOR";
 
   // Prevent scroll when mobile menu is open
   useEffect(() => {
@@ -59,6 +60,11 @@ export function Navbar() {
             {isAdmin && (
               <Link href="/admin" className="rounded-full bg-[var(--primary-strong)] px-4 py-2 text-[11px] font-black text-white transition hover:bg-emerald-700">
                 ADMIN PANEL
+              </Link>
+            )}
+            {isVendor && !isAdmin && (
+              <Link href="/vendor/dashboard" className="rounded-full bg-zinc-900 px-4 py-2 text-[11px] font-black text-white transition hover:bg-zinc-800">
+                VENDOR PORTAL
               </Link>
             )}
           </div>
@@ -168,6 +174,18 @@ export function Navbar() {
                   className="mt-6 flex items-center justify-between rounded-2xl bg-[var(--primary-strong)] p-4 text-white hover:bg-emerald-700"
                 >
                   <span className="text-xl font-black tracking-tight">Admin Dashboard</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-6 w-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              )}
+
+              {isVendor && !isAdmin && (
+                <Link 
+                  href="/vendor/dashboard" 
+                  className="mt-6 flex items-center justify-between rounded-2xl bg-zinc-900 p-4 text-white hover:bg-zinc-800"
+                >
+                  <span className="text-xl font-black tracking-tight">Vendor Portal</span>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-6 w-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                   </svg>

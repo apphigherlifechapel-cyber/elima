@@ -43,9 +43,14 @@ export default async function VendorDashboard() {
             <h1 className="text-4xl font-black text-zinc-900">{user.vendor.storeName} Dashboard</h1>
             <p className="mt-2 text-zinc-400 font-black uppercase tracking-widest text-xs">Vendor Command Center</p>
           </div>
-          <Link href="/vendor/products/new" className="btn-primary rounded-2xl px-6 py-3 text-xs font-black uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700">
-            List New Product
-          </Link>
+          <div className="flex gap-3">
+            <Link href="/vendor/products" className="btn-secondary rounded-2xl px-6 py-3 text-xs font-black uppercase tracking-widest hover:bg-zinc-100">
+              Manage Products
+            </Link>
+            <Link href="/vendor/products/new" className="btn-primary rounded-2xl px-6 py-3 text-xs font-black uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700">
+              List New Product
+            </Link>
+          </div>
         </header>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-12">
