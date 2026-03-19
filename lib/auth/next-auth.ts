@@ -3,6 +3,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db/prisma";
 
+const useSecureCookies = process.env.NEXTAUTH_URL?.startsWith('https://');
+const cookiePrefix = useSecureCookies ? "__Secure-" : "";
+
 export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
@@ -27,6 +30,17 @@ export const authOptions: AuthOptions = {
     }),
   ],
   session: { strategy: "jwt" },
+  cookies: {
+    sessionToken: {
+      name: `${cookiePrefix}next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecureCookies,
+      }, // Omitting maxAge makes it a true browser session cookie
+    },
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
